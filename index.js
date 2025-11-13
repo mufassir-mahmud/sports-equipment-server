@@ -7,11 +7,11 @@ app.use(cors());
 app.use(express.json());
 require('dotenv').config()
 
-// console.log(process.env.DB_User)
+
 
 const uri = `mongodb+srv://${process.env.DB_User}:${process.env.DB_Pass}@cluster0.gbbfjrz.mongodb.net/?appName=Cluster0`;
 
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+
 const client = new MongoClient(uri, {
   serverApi: {
     version: ServerApiVersion.v1,
@@ -22,14 +22,20 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-    // Connect the client to the server	(optional starting in v4.7)
+
     await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
+    const equipmentCollections = client.db("SportsDB").collection("Equipment");
+    app.post("/equipments", async(req,res)=>{
+      const newData = req.body;
+      const result = await equipmentCollections.insertOne(newData);
+      res.send(result)
+    })
+
+    
   } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
+   
+    
   }
 }
 run().catch(console.dir);
