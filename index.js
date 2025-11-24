@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 4001;
 const app = express();
 app.use(cors());
@@ -26,13 +26,47 @@ async function run() {
     await client.connect();
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
     const equipmentCollections = client.db("SportsDB").collection("Equipment");
+    const equipmentUsersCollections = client.db("SportsDB").collection("Users")
+    app.get("/equipments", async (req, res) => {
+  const { email } = req.query;
+
+  let query = {};
+  if (email) {
+    query = { email: email }; // filter by logged-in user email
+  }
+  app.get('/equipments/:id', async(req,res) =>{
+    const id = req.params.id;
+    const query = {_id : new ObjectId(id)};
+    const result = await equipmentCollections.findOne(query);
+    res.send(result)
+  })
+  const result = await equipmentCollections.find(query).toArray();
+  res.send(result);
+});
+
     app.post("/equipments", async(req,res)=>{
       const newData = req.body;
       const result = await equipmentCollections.insertOne(newData);
       res.send(result)
     })
 
-    
+    app.post("/users", async(req,res) =>{
+      const newUser = req.body;
+      const result = await equipmentUsersCollections.insertOne(newUser);
+      res.send(result)
+    })
+
+    app.get("/users", async(req,res)=>{
+      const result = await equipmentUsersCollections.find().toArray();
+      res.send(result)
+    })
+
+    // app.get('/equipments', async(req,res) =>{
+    //    console.log("Received email:", req.query.email);
+    //   const {email} = req.query;
+    //   const equipments = await equipmentCollections.find({email}).toArray()
+    //   res.send(equipments)
+    // })
   } finally {
    
     
